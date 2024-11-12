@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { createApi } from "unsplash-js";
+import { useUnsplashContext } from "./UnsplashProvider";
 import { Random } from "unsplash-js/dist/methods/photos/types";
+
 interface PlaceholderImageProps {
   query?: string;
   width?: number;
@@ -9,10 +11,6 @@ interface PlaceholderImageProps {
   className?: string;
 }
 
-const unsplash = createApi({
-  accessKey: process.env.UNSPLASH_ACCESS_KEY || "",
-});
-
 export const PlaceholderImage: React.FC<PlaceholderImageProps> = ({
   query = "random",
   width = 400,
@@ -20,19 +18,14 @@ export const PlaceholderImage: React.FC<PlaceholderImageProps> = ({
   alt = "Placeholder image",
   className = "",
 }) => {
+  const { accessKey } = useUnsplashContext();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchImage = useCallback(async () => {
-    if (!process.env.UNSPLASH_ACCESS_KEY) {
-      setError(
-        "Unsplash API key is missing. Please set UNSPLASH_ACCESS_KEY in your .env file."
-      );
-      setLoading(false);
-      return;
-    }
+  const unsplash = createApi({ accessKey });
 
+  const fetchImage = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -52,7 +45,7 @@ export const PlaceholderImage: React.FC<PlaceholderImageProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [query, width, height]);
+  }, [unsplash, query, width, height]);
 
   useEffect(() => {
     fetchImage();
